@@ -19,7 +19,27 @@
         /// <summary>Show the NPC icon.</summary>
         Npc = 1 << 4,
 
+        /// <summary>Show the Pet icon.</summary>
+        Pet = 1 << 5,
+
+        Shop = 1 << 6,
+
+        Machine = 1 << 7,
+
+        ForageItem = 1 << 8,
+
+        // --- ORTE / EREIGNISSE ---
+        Location = 1 << 9,
+        FarmLocation = 1 << 10,
+        ForageLocation = 1 << 11,
+        AnimalLocation = 1 << 12,
+        MachineLocation = 1 << 13,
+        
+        SpecialOrder = 1 << 14,
+        PassiveFestival = 1 << 15,
+        ActiveFestival = 1 << 16,
+
         /// <summary>Show all icons.</summary>
-        All = ~(-1 << 5)
+        All = ~(-1 << 17)
     }
 }

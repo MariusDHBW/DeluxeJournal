@@ -33,6 +33,17 @@ namespace DeluxeJournal.Task
         private string _id;
         private string _npcName;
         private string _buildingType;
+        private string _generalLocation;
+        private string _farmLocation;
+        private string _forageLocation;
+        private string _animalLocation;
+        private string _machineLocation;
+        private string _shopId;
+        private string _petName;
+        private string _machineId;
+        private string _specialOrderType;
+        private string _passiveFestivalId;
+        private string _activeFestivalId;
         private int? _count;
         private IEnumerable<string>? _itemIds;
         private IEnumerable<string>? _farmAnimals;
@@ -42,6 +53,7 @@ namespace DeluxeJournal.Task
         private string? _cachedNpcDisplayName;
         private string? _cachedBuildingDisplayName;
         private string? _cachedFarmAnimalDisplayName;
+        private string? _cachedMachineDisplayName;
 
         /// <summary>The ID of the matched task.</summary>
         public string ID => _id;
@@ -171,6 +183,68 @@ namespace DeluxeJournal.Task
                 return _cachedNpcDisplayName ?? _npcName;
             }
         }
+        
+        public string PetName
+        {
+            get => _petName; private set
+            {
+                _petName = value;
+            }
+        }
+
+        public string PetDisplayName
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_petName))
+                {
+                    var pet = Game1.getCharacterFromName(_petName);
+                    if (pet != null)
+                    {
+                        return pet.displayName;
+                    }
+                }
+                return _petName;
+            }
+        }
+
+        public string ShopId
+        {
+            get => _shopId;
+            private set
+            {
+                _shopId = value;
+            }
+        }
+
+        public string ShopDisplayName => _shopId;
+
+        public string MachineId
+        {
+            get => _machineId;
+            private set
+            {
+                _machineId = value;
+                _cachedItem = null;
+                _cachedMachineDisplayName = null;
+            }
+        }
+
+        public string MachineDisplayName
+        {
+            get
+            {
+                if (_cachedMachineDisplayName == null && !string.IsNullOrEmpty(_machineId))
+                {
+                    var data = ItemRegistry.GetData(_machineId);
+                    if (data != null)
+                    {
+                        _cachedMachineDisplayName = data.DisplayName;
+                    }
+                }
+                return _cachedMachineDisplayName ?? _machineId;
+            }
+        }
 
         /// <summary>The parsed building type.</summary>
         public string BuildingType
@@ -197,6 +271,62 @@ namespace DeluxeJournal.Task
                 return _cachedBuildingDisplayName ?? _buildingType;
             }
         }
+
+        /// <summary>Gibt den Anzeigenamen des aktuell gefundenen Ortes zurück (egal welcher Typ).</summary>
+        public string LocationName => ResolveLocationName(_generalLocation);
+        public string FarmLocationName => ResolveLocationName(_farmLocation);
+        public string ForageLocationName => ResolveLocationName(_forageLocation);
+        public string AnimalLocationName => ResolveLocationName(_animalLocation);
+        public string MachineLocationName => ResolveLocationName(_machineLocation);
+
+        public string LocationDisplayName => ResolveLocationName(_generalLocation);
+        public string MachineLocationDisplayName => ResolveLocationName(_machineLocation);
+        public string FarmLocationDisplayName => ResolveLocationName(_farmLocation);
+        public string ForageLocationDisplayName => ResolveLocationName(_forageLocation);
+        public string AnimalLocationDisplayName => ResolveLocationName(_animalLocation);
+
+        public string SpecialOrderType
+        {
+            get => _specialOrderType; private set
+            {
+                _specialOrderType = value;
+            }
+        }
+
+        public string PassiveFestivalId
+        {
+            get => _passiveFestivalId; private set
+            {
+                _passiveFestivalId = value;
+            }
+        }
+
+        public string PassiveFestivalDisplayName
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_passiveFestivalId) &&
+                    DataLoader.PassiveFestivals(Game1.content).TryGetValue(_passiveFestivalId, out var data))
+                {
+                    string displayName = TokenParser.ParseText(data.DisplayName);
+                    
+                    if (string.IsNullOrWhiteSpace(displayName) || displayName.StartsWith("@"))
+                    {
+                        return System.Text.RegularExpressions.Regex.Replace(_passiveFestivalId, "([a-z])([A-Z])", "$1 $2");
+                    }
+                    return displayName;
+                }
+                return _passiveFestivalId;
+            }
+        }
+
+        public string ActiveFestivalId
+        {
+            get => _activeFestivalId;
+            private set { _activeFestivalId = value; }
+        }
+
+        public string ActiveFestivalDisplayName => _activeFestivalId;
 
         /// <summary>The parsed farm animal name.</summary>
         public IEnumerable<string>? FarmAnimals
@@ -266,7 +396,18 @@ namespace DeluxeJournal.Task
             _keywords = new Dictionary<string, HashSet<string>>();
             _id = TaskTypes.Basic;
             _npcName = string.Empty;
+            _petName = string.Empty;
             _buildingType = string.Empty;
+            _machineId = string.Empty;
+            _generalLocation = string.Empty;
+            _farmLocation = string.Empty;
+            _forageLocation = string.Empty;
+            _animalLocation = string.Empty;
+            _machineLocation = string.Empty;
+            _shopId = string.Empty;
+            _specialOrderType = string.Empty;
+            _passiveFestivalId = string.Empty;
+            _activeFestivalId = string.Empty;
             _count = null;
 
             PopulateKeywords(_keywords);
@@ -283,10 +424,27 @@ namespace DeluxeJournal.Task
             }
 
             _count = null;
-            ItemIds = null;
-            FarmAnimals = null;
-            NpcName = string.Empty;
-            BuildingType = string.Empty;
+            _itemIds = null;
+            _farmAnimals = null;
+            _npcName = string.Empty;
+            _petName = string.Empty;
+            _buildingType = string.Empty;
+            _generalLocation = string.Empty;
+            _farmLocation = string.Empty;
+            _forageLocation = string.Empty;
+            _animalLocation = string.Empty;
+            _machineLocation = string.Empty;
+            _shopId = string.Empty;
+            _machineId = string.Empty;
+            _specialOrderType = string.Empty;
+            _passiveFestivalId = string.Empty;
+            _activeFestivalId = string.Empty;
+
+            _cachedItem = null;
+            _cachedNpcDisplayName = null;
+            _cachedBuildingDisplayName = null;
+            _cachedFarmAnimalDisplayName = null;
+            _cachedMachineDisplayName = null;
         }
 
         /// <summary>Matched a non-basic task.</summary>
@@ -435,6 +593,10 @@ namespace DeluxeJournal.Task
                 {
                     ItemIds = itemIds;
                 }
+                else if (!_settings.IgnoreForageItems && _localizedGameData.LocalizedForageItems.TryGetValues(word, out var forageItemIds))
+                {
+                    ItemIds = forageItemIds;
+                }
                 else if (!_settings.IgnoreBuildings && _localizedGameData.LocalizedBuildings.TryGetValue(word, out var buildingType))
                 {
                     BuildingType = buildingType;
@@ -442,6 +604,50 @@ namespace DeluxeJournal.Task
                 else if (!_settings.IgnoreFarmAnimals && _localizedGameData.LocalizedFarmAnimals.TryGetValues(word, out var farmAnimals))
                 {
                     FarmAnimals = farmAnimals;
+                }
+                else if (!_settings.IgnoreMachineLocations && _localizedGameData.LocalizedMachineLocations.TryGetValue(word, out var machineLoc))
+                {
+                    _machineLocation = machineLoc;
+                }
+                else if (!_settings.IgnoreLocations && _localizedGameData.LocalizedLocations.TryGetValue(word, out var locationName))
+                {
+                    _generalLocation = locationName;
+                }
+                else if (!_settings.IgnoreFarmLocations && _localizedGameData.LocalizedFarmLocations.TryGetValue(word, out var farmLoc))
+                {
+                    _farmLocation = farmLoc;
+                }
+                else if (!_settings.IgnoreForageLocations && _localizedGameData.LocalizedForageLocations.TryGetValue(word, out var forageLoc))
+                {
+                    _forageLocation = forageLoc;
+                }
+                else if (!_settings.IgnoreAnimalLocations && _localizedGameData.LocalizedAnimalLocations.TryGetValue(word, out var animalLoc))
+                {
+                    _animalLocation = animalLoc;
+                }
+                else if (!_settings.IgnoreShops && _localizedGameData.LocalizedShops.TryGetValue(word, out var shopId))
+                {
+                    ShopId = shopId;
+                }
+                else if (!_settings.IgnorePets && _localizedGameData.LocalizedPets.TryGetValue(word, out var petName))
+                {
+                    PetName = petName;
+                }
+                else if (!_settings.IgnoreMachines && _localizedGameData.LocalizedMachines.TryGetValue(word, out var machineId))
+                {
+                    MachineId = machineId;
+                }
+                else if (!_settings.IgnoreSpecialOrders && _localizedGameData.LocalizedSpecialOrder.TryGetValue(word, out var specialOrderType))
+                {
+                    SpecialOrderType = specialOrderType;
+                }
+                else if (!_settings.IgnorePassiveFestivals && _localizedGameData.LocalizedPassiveFestivals.TryGetValue(word, out var passivefestId))
+                {
+                    PassiveFestivalId = passivefestId;
+                }
+                else if (!_settings.IgnoreActiveFestivals && _localizedGameData.LocalizedActiveFestivals.TryGetValue(word, out var activeFestId))
+                {
+                    ActiveFestivalId = activeFestId;
                 }
                 else
                 {
@@ -472,6 +678,10 @@ namespace DeluxeJournal.Task
             {
                 return ItemIds != null && parameter.TrySetValue(ItemIds.ToList());
             }
+            else if (tag.Equals(TaskParameterTag.ForageItemList) && propertyType == typeof(IList<string>))
+            {
+                return ItemIds != null && parameter.TrySetValue(ItemIds.ToList());
+            }
             else if (tag.Equals(TaskParameterTag.FarmAnimalList) && propertyType == typeof(IList<string>))
             {
                 return FarmAnimals != null && parameter.TrySetValue(FarmAnimals.ToList());
@@ -479,6 +689,50 @@ namespace DeluxeJournal.Task
             else if (tag.Equals(TaskParameterTag.Count) && propertyType == typeof(int))
             {
                 return parameter.TrySetValue(_count);
+            }
+            else if (tag.Equals(TaskParameterTag.Location) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(_generalLocation);
+            }
+            else if (tag.Equals(TaskParameterTag.FarmLocation) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(_farmLocation);
+            }
+            else if (tag.Equals(TaskParameterTag.ForageLocation) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(_forageLocation);
+            }
+            else if (tag.Equals(TaskParameterTag.AnimalLocation) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(_animalLocation);
+            }
+            else if (tag.Equals(TaskParameterTag.MachineLocation) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(_machineLocation);
+            }
+            else if (tag.Equals(TaskParameterTag.Shop) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(ShopId);
+            }
+            else if (tag.Equals(TaskParameterTag.PetName) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(PetName);
+            }
+            else if (tag.Equals(TaskParameterTag.Machine) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(MachineId);
+            }
+            else if (tag.Equals(TaskParameterTag.SpecialOrderType) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(SpecialOrderType);
+            }
+            else if (tag.Equals(TaskParameterTag.PassiveFestivalId) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(PassiveFestivalId);
+            }
+            else if (tag.Equals(TaskParameterTag.ActiveFestivalId) && propertyType == typeof(string))
+            {
+                return parameter.TrySetValue(ActiveFestivalId);
             }
             else
             {
@@ -505,6 +759,10 @@ namespace DeluxeJournal.Task
             {
                 ItemIds = parameter.Value is IList<string> itemIds ? itemIds.ToList() : null;
             }
+            else if (tag.Equals(TaskParameterTag.ForageItemList))
+            {
+                ItemIds = parameter.Value is IList<string> l ? l.ToList() : null;
+            }
             else if (tag.Equals(TaskParameterTag.FarmAnimalList))
             {
                 FarmAnimals = parameter.Value is IList<string> farmAnimals ? farmAnimals.ToList() : null;
@@ -512,6 +770,50 @@ namespace DeluxeJournal.Task
             else if (tag.Equals(TaskParameterTag.Count))
             {
                 _count = parameter.Value is int count ? count : 1;
+            }
+            else if (tag.Equals(TaskParameterTag.Location))
+            {
+                _generalLocation = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.FarmLocation))
+            {
+                _farmLocation = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.ForageLocation))
+            {
+                _forageLocation = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.AnimalLocation))
+            {
+                _animalLocation = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.MachineLocation))
+            {
+                _machineLocation = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.Shop))
+            {
+                ShopId = parameter.Value is string shopId ? shopId : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.PetName))
+            {
+                PetName = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.Machine))
+            {
+                MachineId = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.SpecialOrderType))
+            {
+                SpecialOrderType = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.PassiveFestivalId))
+            {
+                PassiveFestivalId = parameter.Value is string s ? s : string.Empty;
+            }
+            else if (tag.Equals(TaskParameterTag.ActiveFestivalId))
+            {
+                ActiveFestivalId = parameter.Value is string s ? s : string.Empty;
             }
             else
             {
@@ -530,6 +832,10 @@ namespace DeluxeJournal.Task
             {
                 return !string.IsNullOrEmpty(NpcName);
             }
+            else if (enabled.HasFlag(SmartIconFlags.Pet))
+            {
+                return !string.IsNullOrEmpty(PetName);
+            }
             else if (enabled.HasFlag(SmartIconFlags.Building))
             {
                 return !string.IsNullOrEmpty(BuildingType);
@@ -538,9 +844,53 @@ namespace DeluxeJournal.Task
             {
                 return ItemIds != null;
             }
+            else if (enabled.HasFlag(SmartIconFlags.ForageItem))
+            {
+                return ItemIds != null;
+            }
             else if (enabled.HasFlag(SmartIconFlags.Animal))
             {
                 return FarmAnimals != null;
+            }
+            else if (enabled.HasFlag(SmartIconFlags.Machine))
+            {
+                return !string.IsNullOrEmpty(MachineId);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.Shop))
+            {
+                return !string.IsNullOrEmpty(ShopId);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.Location))
+            {
+                return !string.IsNullOrEmpty(_generalLocation);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.FarmLocation))
+            {
+                return !string.IsNullOrEmpty(_farmLocation);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.ForageLocation))
+            {
+                return !string.IsNullOrEmpty(_forageLocation);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.AnimalLocation))
+            {
+                return !string.IsNullOrEmpty(_animalLocation);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.MachineLocation))
+            {
+                return !string.IsNullOrEmpty(_machineLocation);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.SpecialOrder))
+            {
+                return !string.IsNullOrEmpty(SpecialOrderType);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.PassiveFestival))
+            {
+                return !string.IsNullOrEmpty(PassiveFestivalId);
+            }
+            else if (enabled.HasFlag(SmartIconFlags.ActiveFestival))
+            {
+                return !string.IsNullOrEmpty(ActiveFestivalId);
             }
             else
             {
@@ -570,6 +920,33 @@ namespace DeluxeJournal.Task
             }
 
             return factory;
+        }
+
+        private string ResolveLocationName(string internalName)
+        {
+            if (string.IsNullOrEmpty(internalName)) return string.Empty;
+
+            GameLocation? loc = Game1.getLocationFromName(internalName);
+            if (loc != null)
+            {
+                return loc.DisplayName;
+            }
+
+            Farm farm = Game1.getFarm();
+            var building = farm?.buildings.FirstOrDefault(b => b.id.Value.ToString() == internalName);
+
+            if (building != null)
+            {
+                string buildingType = building.buildingType.Value;
+                string displayName = buildingType;
+
+                if (Game1.buildingData.TryGetValue(buildingType, out var data))
+                {
+                    displayName = TokenParser.ParseText(data.Name) ?? buildingType;
+                }
+                return $"{displayName} ({building.tileX.Value} {building.tileY.Value})";
+            }
+            return internalName;
         }
 
         private void PopulateKeywords(IDictionary<string, HashSet<string>> keywords)

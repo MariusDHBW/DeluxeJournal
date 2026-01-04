@@ -1,0 +1,113 @@
+using StardewValley;
+using StardewValley.Locations;
+using StardewValley.Objects;
+using StardewValley.TerrainFeatures;
+
+namespace DeluxeJournal.Automation
+{
+    internal static class GameExtensions
+    {
+        public static int GetNumberOfReadyMachinesExcludingBuildings(this GameLocation location)
+        {
+            int num = 0;
+            foreach (StardewValley.Object obj in location.objects.Values)
+            {
+                if (obj.IsConsideredReadyMachineForComputer())
+                {
+                    if (obj is ItemPedestal itemPedestal)
+                    {
+                        continue;
+                    }
+
+                    num++;
+                }
+            }
+
+            return num;
+        }
+
+        public static int GetTotalCropsReadyForHarvestExcludingForagables(this GameLocation location)
+        {
+            int num = 0;
+            foreach (TerrainFeature value in location.terrainFeatures.Values)
+            {
+                if (
+                    value is HoeDirt hoeDirt && hoeDirt.readyForHarvest() && 
+                    hoeDirt.crop is not null && !hoeDirt.crop.forageCrop.Value 
+                )
+                {
+                    num++;
+                }
+            }
+
+            return num;
+        }
+
+        public static int GetTotalUnwateredCropsExcludingGinger(this GameLocation location)
+        {
+            if (location.IsGingerIslandLocation())
+            {
+                int num = 0;
+                foreach (TerrainFeature feature in location.terrainFeatures.Values)
+                {
+                    if (feature is HoeDirt hoeDirt &&
+                        hoeDirt.crop is not null &&
+                        hoeDirt.needsWatering() &&
+                        !hoeDirt.isWatered() &&
+                        !hoeDirt.crop.IsGinger()
+                    )
+                    {
+                        num++;
+                    }
+                }
+
+                return num;
+            }
+            else
+            {
+                // Hinweis: In Stardew 1.6 könnte dies GetTotalUnwateredCrops() sein (PascalCase).
+                // Falls hier ein Fehler auftritt, ändere 'getTotalUnwateredCrops' zu 'GetTotalUnwateredCrops'.
+                return location.getTotalUnwateredCrops();
+            }
+        }
+
+        public static bool IsGingerIslandLocation(this GameLocation location)
+        {
+            return location is IslandLocation;
+        }
+
+        public static bool IsGinger(this Crop crop)
+        {
+            return crop is not null && crop.forageCrop.Value && crop.whichForageCrop.Value == "2";
+        }
+
+        // Das ist die Methode, die gefehlt hat!
+        public static bool IsInPassiveFestivalLocation(this Character character, string festivalID)
+        {
+            return festivalID switch
+            {
+                "NightMarket" => character.currentLocation is BeachNightMarket,
+                "DesertFestival" => character.currentLocation is DesertFestival,
+                "TroutDerby" => character.currentLocation is Forest,
+                "SquidFest" => character.currentLocation is Beach,
+                _ => false
+            };
+        }
+
+        // Prüft, ob am Ort ein Auto-Petter steht (Id 272)
+        public static bool HasAutoPetter(this GameLocation location)
+        {
+            if (location == null) return false;
+
+            foreach (StardewValley.Object obj in location.objects.Values)
+            {
+                // Prüfung auf Auto-Petter (ID 272)
+                if (obj.QualifiedItemId == "(BC)272" || obj.Name.Contains("Auto-Petter"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+}

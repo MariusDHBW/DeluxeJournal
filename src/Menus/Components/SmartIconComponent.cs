@@ -8,6 +8,7 @@ using StardewValley.Tools;
 using DeluxeJournal.Task;
 using DeluxeJournal.Task.Tasks;
 using DeluxeJournal.Framework.Data;
+using StardewValley.Characters;
 
 using static StardewValley.Menus.ClickableComponent;
 
@@ -177,10 +178,65 @@ namespace DeluxeJournal.Menus.Components
                     {
                         text = _taskParser.NpcDisplayName;
                     }
+                    // 1. Events & Festivals (Höchste Prio)
+                    else if (ComparePriority(ref flag, SmartIconFlags.ActiveFestival, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.ActiveFestival))
+                    {
+                        text = _taskParser.ActiveFestivalDisplayName;
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.PassiveFestival, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.PassiveFestival))
+                    {
+                        text = _taskParser.PassiveFestivalDisplayName;
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.SpecialOrder, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.SpecialOrder))
+                    {
+                        text = _taskParser.SpecialOrderType;
+                    }
+                    // 2. Spezifische Locations
+                    else if (ComparePriority(ref flag, SmartIconFlags.MachineLocation, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.MachineLocation))
+                    {
+                        text = _taskParser.MachineLocationDisplayName;
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.AnimalLocation, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.AnimalLocation))
+                    {
+                        text = _taskParser.AnimalLocationDisplayName;
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.ForageLocation, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.ForageLocation))
+                    {
+                        text = _taskParser.ForageLocationDisplayName;
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.FarmLocation, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.FarmLocation))
+                    {
+                        text = _taskParser.FarmLocationDisplayName;
+                    }
+                    // 3. Standard Location
+                    else if (ComparePriority(ref flag, SmartIconFlags.Location, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Location))
+                    {
+                        text = _taskParser.LocationDisplayName;
+                    }
+                    // 4. Objekte / Items
+                    else if (ComparePriority(ref flag, SmartIconFlags.ForageItem, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.ForageItem))
+                    {
+                        text = _taskParser.ProxyItemDisplayName;
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.Machine, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Machine))
+                    {
+                        text = _taskParser.MachineDisplayName;
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.Shop, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Shop))
+                    {
+                        text = _taskParser.ShopDisplayName;
+                    }
+                    // 5. Lebewesen
+                    else if (ComparePriority(ref flag, SmartIconFlags.Pet, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Pet))
+                    {
+                        text = _taskParser.PetDisplayName;
+                    }
+                    
                     else if (ComparePriority(ref flag, SmartIconFlags.Animal, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Animal))
                     {
                         text = _taskParser.FarmAnimalDisplayName;
                     }
+                    // 6. Gebäude & Standard Items (Niedrigste Prio)
                     else if (ComparePriority(ref flag, SmartIconFlags.Building, _mask) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Building))
                     {
                         text = _taskParser.BuildingDisplayName;
@@ -196,7 +252,7 @@ namespace DeluxeJournal.Menus.Components
 
                     return true;
                 }
-
+                
                 flag = (SmartIconFlags)((int)flag >> 1);
             }
 
@@ -232,31 +288,105 @@ namespace DeluxeJournal.Menus.Components
                             b.Draw(texture, ConvertInnerBounds(targetIcon.bounds), _npcSourceRect, color);
                         }
                     }
+                    // 1. Events & Festivals (Höchste Priorität)
+                    else if (ComparePriority(ref flag, SmartIconFlags.ActiveFestival, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.ActiveFestival))
+                    {
+                        DrawIconBackground(b, targetIcon.bounds, 2, color, shadow);
+                        b.Draw(Game1.mouseCursors, ConvertInnerBounds(targetIcon.bounds), new Rectangle(0, 412, 16, 16), color);
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.PassiveFestival, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.PassiveFestival))
+                    {
+                        DrawIconBackground(b, targetIcon.bounds, 2, color, shadow);
+                        b.Draw(Game1.mouseCursors, ConvertInnerBounds(targetIcon.bounds), new Rectangle(0, 412, 16, 16), color);
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.SpecialOrder, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.SpecialOrder))
+                    {
+                        DrawIconBackground(b, targetIcon.bounds, 2, color, shadow);
+                        b.Draw(Game1.mouseCursors, ConvertInnerBounds(targetIcon.bounds), new Rectangle(0, 412, 16, 16), color);
+                    }
+                    // 2. Spezifische Locations (Höhere Prio als normale Location)
+                    else if (ComparePriority(ref flag, SmartIconFlags.MachineLocation, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.MachineLocation))
+                    {
+                        DrawLocationIcon(b, targetIcon, color, shadow);
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.AnimalLocation, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.AnimalLocation))
+                    {
+                        DrawLocationIcon(b, targetIcon, color, shadow);
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.ForageLocation, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.ForageLocation))
+                    {
+                        DrawLocationIcon(b, targetIcon, color, shadow);
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.FarmLocation, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.FarmLocation))
+                    {
+                        DrawLocationIcon(b, targetIcon, color, shadow);
+                    }
+                    // 3. Standard Location
+                    else if (ComparePriority(ref flag, SmartIconFlags.Location, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Location))
+                    {
+                        DrawLocationIcon(b, targetIcon, color, shadow);
+                    }
+                    // 4. Objekte / Items (Mittlere Priorität)
+                    else if (ComparePriority(ref flag, SmartIconFlags.ForageItem, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.ForageItem) && _taskParser.ProxyItem is Item forageItem)
+                    {
+                        DrawIconBackground(b, targetIcon.bounds, 1, color, shadow);
+                        forageItem.drawInMenu(b, new Vector2(targetIcon.bounds.X - 4, targetIcon.bounds.Y - (forageItem is WateringCan ? -4 : 4)), 0.75f, 1.0f, 0.9f, StackDrawType.Hide, color, false);
+                        DrawQuality(b, quality, targetIcon.bounds, color);
+                        DrawDigits(b, parsedCount, targetIcon.bounds, color);
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.Machine, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Machine))
+                    {
+                        if (!string.IsNullOrEmpty(_taskParser.MachineId))
+                        {
+                            Item item = ItemRegistry.Create(_taskParser.MachineId, allowNull: true);
+                            if (item != null)
+                            {
+                                DrawIconBackground(b, targetIcon.bounds, 1, color, shadow);
+                                item.drawInMenu(b, new Vector2(targetIcon.bounds.X - 4, targetIcon.bounds.Y - (item is WateringCan ? -4 : 4)), 0.75f, 1.0f, 0.9f, StackDrawType.Hide, color, false);
+                                DrawDigits(b, parsedCount, targetIcon.bounds, color);
+                            }
+                        }
+                    }
+                    else if (ComparePriority(ref flag, SmartIconFlags.Shop, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Shop))
+                    {
+                        DrawIconBackground(b, targetIcon.bounds, 2, color, shadow);
+                        b.Draw(Game1.mouseCursors, ConvertInnerBounds(targetIcon.bounds), new Rectangle(296, 412, 16, 16), color);
+                    }
+                    // 5. Lebewesen (Niedrigere Priorität)
+                    else if (ComparePriority(ref flag, SmartIconFlags.Pet, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Pet))
+                    {
+                        DrawIconBackground(b, targetIcon.bounds, 1, color, shadow);
+                        if (LoadPetSpriteSheet(_taskParser.PetName) is Texture2D texture)
+                        {
+                            b.Draw(texture, ConvertInnerBounds(targetIcon.bounds), _npcSourceRect, color);
+                        }
+                    }
                     else if (ComparePriority(ref flag, SmartIconFlags.Animal, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Animal))
                     {
-                        DrawIconWithBackground(b,
-                            DeluxeJournalMod.AnimalIconsTexture,
-                            ConvertInnerBounds(targetIcon.bounds),
-                            targetIcon.bounds,
-                            AnimalIconIds?.GetValueOrDefault(_taskParser.FarmAnimals?.FirstOrDefault() ?? string.Empty) ?? 0,
-                            0,
-                            color,
-                            parsedCount,
-                            shadow: shadow);
+                        DrawIconWithBackground(b, 
+                        DeluxeJournalMod.AnimalIconsTexture, 
+                        ConvertInnerBounds(targetIcon.bounds), 
+                        targetIcon.bounds, 
+                        AnimalIconIds?.GetValueOrDefault(_taskParser.FarmAnimals?.FirstOrDefault() ?? string.Empty) ?? 0, 
+                        0, 
+                        color, 
+                        parsedCount, 
+                        shadow: shadow);
                     }
+                    // 6. Gebäude & Standard Items (Niedrigste Priorität)
                     else if (ComparePriority(ref flag, SmartIconFlags.Building, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Building))
                     {
                         if (BuildingIconData?.GetValueOrDefault(_taskParser.BuildingType) is BuildingIconData buildingIconData)
                         {
-                            DrawIcon(b,
-                                DeluxeJournalMod.BuildingIconsTexture,
-                                targetIcon.bounds,
-                                buildingIconData.SpriteIndex,
-                                OuterIconPixels,
-                                color,
-                                parsedCount,
-                                buildingIconData.Tier,
-                                shadow);
+                            DrawIcon(b, 
+                            DeluxeJournalMod.BuildingIconsTexture, 
+                            targetIcon.bounds, 
+                            buildingIconData.SpriteIndex, 
+                            OuterIconPixels, 
+                            color, 
+                            parsedCount, 
+                            buildingIconData.Tier, 
+                            shadow);
                         }
                         else
                         {
@@ -266,12 +396,12 @@ namespace DeluxeJournal.Menus.Components
                     else if (ComparePriority(ref flag, SmartIconFlags.Item, _mask, true) && _taskParser.ShouldShowSmartIcon(SmartIconFlags.Item) && _taskParser.ProxyItem is Item item)
                     {
                         DrawIconBackground(b, targetIcon.bounds, 1, color, shadow);
-                        item.drawInMenu(b,
-                            new Vector2(targetIcon.bounds.X - 4, targetIcon.bounds.Y - (item is WateringCan ? -4 : 4)),
-                            0.75f, 1.0f, 0.9f,
-                            StackDrawType.Hide,
-                            color,
-                            false);
+                        item.drawInMenu(b, 
+                        new Vector2(targetIcon.bounds.X - 4, targetIcon.bounds.Y - (item is WateringCan ? -4 : 4)), 
+                        0.75f, 1.0f, 0.9f, 
+                        StackDrawType.Hide, 
+                        color, 
+                        false);
 
                         DrawQuality(b, quality, targetIcon.bounds, color);
 
@@ -295,6 +425,12 @@ namespace DeluxeJournal.Menus.Components
             }
         }
 
+        private static void DrawLocationIcon(SpriteBatch b, ClickableComponent targetIcon, Color color, bool shadow)
+        {
+            DrawIconBackground(b, targetIcon.bounds, 2, color, shadow);
+            b.Draw(Game1.mouseCursors, ConvertInnerBounds(targetIcon.bounds), new Rectangle(0, 412, 16, 16), color);
+        }
+
         /// <summary>Load and cache the sprite sheet of an NPC along with the corresponding icon source rect.</summary>
         /// <param name="npcName">Name of the NPC to load.</param>
         private Texture2D? LoadNpcSpriteSheet(string npcName)
@@ -314,6 +450,51 @@ namespace DeluxeJournal.Menus.Components
                 }
 
                 _loadedNpcName = npcName;
+            }
+
+            return _npcSpriteSheet;
+        }
+
+        /// <summary>Load and cache the sprite sheet of a Pet.</summary>
+        private Texture2D? LoadPetSpriteSheet(string petName)
+        {
+            if (petName != _loadedNpcName)
+            {
+                string textureName = "";
+                int width = 16;
+                int height = 32;
+
+                if (Game1.getCharacterFromName(petName) is Pet pet)
+                {
+                    try
+                    {
+                        textureName = pet.Sprite.textureName.Name;
+
+                        if (!textureName.Contains("\\") && !textureName.Contains("/"))
+                        {
+                            textureName = "Characters\\" + textureName;
+                        }
+
+                        width = pet.Sprite.SpriteWidth;
+                        height = pet.Sprite.SpriteHeight;
+                    }
+                    catch
+                    {
+                        // Fehler beim Zugriff auf Pet-Daten ignorieren
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(textureName) && Game1.content.DoesAssetExist<Texture2D>(textureName))
+                {
+                    _npcSpriteSheet = Game1.content.Load<Texture2D>(textureName);
+                    _npcSourceRect = GetNpcSourceRect(_npcSpriteSheet, width, height);
+                }
+                else
+                {
+                    _npcSpriteSheet = null;
+                }
+
+                _loadedNpcName = petName;
             }
 
             return _npcSpriteSheet;

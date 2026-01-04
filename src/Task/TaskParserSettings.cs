@@ -5,13 +5,25 @@
     {
         private bool? _enableFuzzySearch;
         private bool? _ignoreItems;
+        private bool? _ignoreForageItems;
         private bool? _ignoreNpcs;
         private bool? _ignoreBuildings;
         private bool? _ignoreFarmAnimals;
+        private bool? _ignorePets;
         private bool? _setItemCategoryObject;
         private bool? _setItemCategoryBigCraftable;
         private bool? _setItemCategoryCraftable;
         private bool? _setItemCategoryTool;
+        private bool? _ignoreLocations;
+        private bool? _ignoreFarmLocations;
+        private bool? _ignoreForageLocations;
+        private bool? _ignoreAnimalLocations;
+        private bool? _ignoreMachineLocations;
+        private bool? _ignoreShops;
+        private bool? _ignoreMachines;
+        private bool? _ignoreSpecialOrders;
+        private bool? _ignorePassiveFestivals;
+        private bool? _ignoreActiveFestivals;
 
         /// <summary>
         /// Enable fuzzy search when matching game data. A fuzzy search allows matching
@@ -32,6 +44,12 @@
         {
             get => _ignoreItems ?? false;
             set => _ignoreItems = value;
+        }
+
+        public bool IgnoreForageItems
+        {
+            get => _ignoreForageItems ?? false;
+            set => _ignoreForageItems = value;
         }
 
         /// <summary>
@@ -62,6 +80,12 @@
         {
             get => _ignoreFarmAnimals ?? false;
             set => _ignoreFarmAnimals = value;
+        }
+
+        public bool IgnorePets
+        {
+            get => _ignorePets ?? false;
+            set => _ignorePets = value;
         }
 
         /// <summary>
@@ -110,6 +134,66 @@
         {
             get => _setItemCategoryTool ?? false;
             set => _setItemCategoryTool = value;
+        }
+
+        public bool IgnoreLocations
+        {
+            get => _ignoreLocations ?? false;
+            set => _ignoreLocations = value;
+        }
+
+        public bool IgnoreFarmLocations
+        {
+            get => _ignoreFarmLocations ?? false;
+            set => _ignoreFarmLocations = value;
+        }
+
+        public bool IgnoreForageLocations
+        {
+            get => _ignoreForageLocations ?? false;
+            set => _ignoreForageLocations = value;
+        }
+
+        public bool IgnoreAnimalLocations
+        {
+            get => _ignoreAnimalLocations ?? false;
+            set => _ignoreAnimalLocations = value;
+        }
+
+        public bool IgnoreMachineLocations
+        {
+            get => _ignoreMachineLocations ?? false;
+            set => _ignoreMachineLocations = value;
+        }
+
+        public bool IgnoreShops
+        {
+            get => _ignoreShops ?? false;
+            set => _ignoreShops = value;
+        }
+
+        public bool IgnoreMachines
+        {
+            get => _ignoreMachines ?? false;
+            set => _ignoreMachines = value;
+        }
+
+        public bool IgnoreSpecialOrders
+        {
+            get => _ignoreSpecialOrders ?? false;
+            set => _ignoreSpecialOrders = value;
+        }
+
+        public bool IgnorePassiveFestivals
+        {
+            get => _ignorePassiveFestivals ?? false;
+            set => _ignorePassiveFestivals = value;
+        }
+
+        public bool IgnoreActiveFestivals // <--- NEU
+        {
+            get => _ignoreActiveFestivals ?? false;
+            set => _ignoreActiveFestivals = value;
         }
 
         /// <summary>Returns true if none of the <c>SetItemCategoryX</c> flags are set.</summary>

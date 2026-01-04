@@ -17,6 +17,7 @@ using DeluxeJournal.Menus.Components;
 using DeluxeJournal.Patching;
 using DeluxeJournal.Task;
 using DeluxeJournal.Task.Tasks;
+using DeluxeJournal.Automation;
 
 namespace DeluxeJournal
 {
@@ -57,7 +58,7 @@ namespace DeluxeJournal
         public static ITranslationHelper? Translation { get; private set; }
 
         /// <summary>Configuration settings.</summary>
-        public static Config? Config { get; private set; }
+        public static Config? Config { get; internal set; }
 
         /// <summary>Event manager for handling event subscriptions.</summary>
         public static EventManager? EventManager { get; private set; }
@@ -70,6 +71,8 @@ namespace DeluxeJournal
 
         /// <summary>Notes save data.</summary>
         private NotesData? NotesData { get; set; }
+
+        private ToDoListGenerator? _toDoGenerator;
 
         public override void Entry(IModHelper helper)
         {
@@ -113,9 +116,13 @@ namespace DeluxeJournal
 
             ConsoleCommands.AddCommands(helper.ConsoleCommands, Monitor);
 
-#if DEBUG
-            Program.enableCheats = true;
-#endif
+            // Automation initialisieren
+            _toDoGenerator = new ToDoListGenerator(helper);
+            helper.Events.GameLoop.DayStarted += OnDayStarted;
+
+            #if DEBUG
+                        Program.enableCheats = true;
+            #endif
         }
 
         /// <summary>Get the stored notes page text.</summary>
@@ -241,6 +248,14 @@ namespace DeluxeJournal
             {
                 LoadColorSchemas(string.IsNullOrEmpty(Config?.TargetColorSchemaFile) ? null : $"{ColorDataPath}/{Config.TargetColorSchemaFile}");
             }
+
+            // Generic Mod Config Menu Integration
+            var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            
+            if (configMenu != null && Config != null)
+            {
+                Config.RegisterMenu(ModManifest, configMenu);
+            }
         }
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -257,6 +272,58 @@ namespace DeluxeJournal
             {
                 Helper.WriteConfig(Config);
             }
+        }
+        
+        /// <summary> Wird jeden Morgen aufgerufen. </summary>
+        private void OnDayStarted(object? sender, DayStartedEventArgs e)
+        {
+            ReloadDailyTasks();
+        }
+
+        /// <summary>
+        /// Aktualisiert die täglichen Aufgaben basierend auf den aktuellen Einstellungen.
+        /// </summary>
+        public void ReloadDailyTasks()
+        {
+            if (_toDoGenerator == null || TaskManager == null) return;
+
+            Monitor.Log("[Automation] Aktualisiere Aufgabenliste...", LogLevel.Info);
+
+            string headerName = "Daily To-Do";
+            var allTasks = TaskManager.Tasks;
+            
+            // 1. Header finden oder erstellen
+            var header = allTasks.FirstOrDefault(t => t.IsHeader && t.Name == headerName);
+            if (header == null)
+            {
+                header = new HeaderTask(headerName);
+                allTasks.Insert(0, header);
+            }
+
+            // 2. Ziel-Liste berechnen (Was wir laut Config haben WOLLEN)
+            var newDailyTasks = _toDoGenerator.GetDailyTasks();
+
+            // 3. Alte automatische Aufgaben finden und entfernen            
+            for (int i = allTasks.Count - 1; i >= 0; i--)
+            {
+                var task = allTasks[i];
+
+                if (ToDoListGenerator.IsAutomatedTask(task))
+                {
+                    allTasks.RemoveAt(i);
+                }
+            }
+
+            // 4. Neue Aufgaben einfügen
+            int insertIndex = allTasks.IndexOf(header) + 1;
+
+            foreach (var newTask in newDailyTasks)
+            {
+                allTasks.Insert(insertIndex, newTask);
+                insertIndex++;
+            }
+
+            TaskManager.SortTasks();
         }
     }
 }

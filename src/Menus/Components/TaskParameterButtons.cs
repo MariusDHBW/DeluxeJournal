@@ -36,7 +36,7 @@ namespace DeluxeJournal.Menus.Components
                 if ((_selectedButton = value) is ButtonComponent button)
                 {
                     _selectedButton.Selected = true;
-                    _selectedButtonBounds = new(
+                        _selectedButtonBounds = new(
                         bounds.X - button.bounds.Width - Margin - 4,
                         bounds.Y,
                         button.bounds.Width,
@@ -126,6 +126,7 @@ namespace DeluxeJournal.Menus.Components
             }
 
             bounds.Height = y - bounds.Y + rowHeight + Margin * rows;
+            SelectedButton = _selectedButton;
             RemapButtonNeighbors();
         }
 
@@ -160,10 +161,10 @@ namespace DeluxeJournal.Menus.Components
                 button.leftNeighborID = button.bounds.X <= bounds.X ? leftNeighborID : SNAP_AUTOMATIC;
             }
         }
-
+        
         public IEnumerable<ClickableComponent> GetClickableComponents()
         {
-            foreach (var button in Buttons)
+            foreach (var button in Buttons) 
             {
                 yield return button;
             }
@@ -173,10 +174,10 @@ namespace DeluxeJournal.Menus.Components
 
         public override bool containsPoint(int x, int y)
         {
-            if (bounds.Contains(x, y))
-            {
-                Game1.SetFreeCursorDrag();
-                return true;
+            if (bounds.Contains(x, y)) 
+            { 
+                Game1.SetFreeCursorDrag(); 
+                return true; 
             }
 
             return false;
@@ -184,7 +185,7 @@ namespace DeluxeJournal.Menus.Components
 
         public void TryHover(int x, int y)
         {
-            foreach (var button in Buttons)
+            foreach (var button in Buttons) 
             {
                 button.tryHover(x, y);
             }
@@ -221,7 +222,7 @@ namespace DeluxeJournal.Menus.Components
 
             foreach (var button in Buttons)
             {
-                if (button.visible)
+                if (button.visible) 
                 {
                     button.draw(b);
                 }

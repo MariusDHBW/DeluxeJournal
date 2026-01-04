@@ -22,6 +22,8 @@ namespace DeluxeJournal.Task
 
         public string ID => _id;
 
+        public string TypeID { get; set; } = Guid.NewGuid().ToString();
+
         public string Name { get; set; }
 
         public long OwnerUniqueMultiplayerID { get; set; }
@@ -31,6 +33,11 @@ namespace DeluxeJournal.Task
         public WorldDate RenewDate { get; set; }
 
         public int RenewCustomInterval { get; set; }
+
+        public SeasonFlags RequiredSeasons { get; set; }
+        public WeekdayFlags RequiredWeekdays { get; set; }
+        public WeekFlags RequiredWeeks { get; set; }
+        public WeatherFlags RequiredWeather { get; set; }
 
         public virtual int Count
         {
@@ -73,6 +80,12 @@ namespace DeluxeJournal.Task
                         WorldDate renewDate = WorldDate.Now();
                         renewDate.TotalDays += RenewCustomInterval;
                         RenewDate = renewDate;
+                    }
+                    else if (RenewPeriod == Period.Advanced)
+                    {
+                        WorldDate tomorrow = WorldDate.Now();
+                        tomorrow.TotalDays++; 
+                        RenewDate = GetNextValidDate(tomorrow);
                     }
 
                     NotifyStatusChanged(oldActive, Complete, Count);
@@ -122,8 +135,48 @@ namespace DeluxeJournal.Task
             RenewPeriod = Period.Never;
             RenewDate = new WorldDate(1, Season.Spring, 1);
             RenewCustomInterval = 1;
+            RequiredSeasons = SeasonFlags.All;
+            RequiredWeekdays = WeekdayFlags.All;
+            RequiredWeeks = WeekFlags.All;
+            RequiredWeather = WeatherFlags.All;
             MaxCount = 1;
             GroupColorIndex = -1;
+        }
+
+        private bool IsConditionsMet(WorldDate date)
+        {
+            // 1. Jahreszeit, 2. Woche und 3. Wochentag in einer kombinierten Abfrage
+            if ((RequiredSeasons & (SeasonFlags)(1 << date.SeasonIndex)) == 0 ||
+                (RequiredWeeks & (WeekFlags)(1 << ((date.DayOfMonth - 1) / 7))) == 0 ||
+                (RequiredWeekdays & (WeekdayFlags)(1 << ((date.DayOfMonth - 1) % 7))) == 0)
+            {
+                return false;
+            }
+
+            // 4. Wetter
+            if (RequiredWeather != WeatherFlags.All && date.TotalDays == Game1.Date.TotalDays)
+            {
+                WeatherFlags currentWeather = (Game1.isRaining || Game1.isLightning) ? WeatherFlags.Rain : WeatherFlags.Sun;
+
+                if ((RequiredWeather & currentWeather) == 0) return false;
+            }
+
+            return true;
+        }
+
+        private WorldDate GetNextValidDate(WorldDate startDate)
+        {
+            WorldDate date = new WorldDate(startDate);
+
+            for (int i = 0; i < 112; i++)
+            {
+                if (IsConditionsMet(date)) return date;
+                date.TotalDays++;
+            }
+            
+            WorldDate fallback = new WorldDate(startDate);
+            fallback.TotalDays++;
+            return fallback;
         }
 
         /// <summary>Helper method to get the buy/sale price of an item.</summary>
@@ -215,6 +268,12 @@ namespace DeluxeJournal.Task
 
         public virtual int DaysRemaining()
         {
+            if (RenewPeriod == Period.Advanced)
+            {
+                WorldDate nextDue = GetNextValidDate(Game1.Date);
+                return nextDue.TotalDays - Game1.Date.TotalDays;
+            }
+
             return RenewPeriod switch
             {
                 Period.Weekly => (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 7) + 7) % 7,

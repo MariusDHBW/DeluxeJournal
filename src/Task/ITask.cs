@@ -18,12 +18,15 @@ namespace DeluxeJournal.Task
             Weekly,
             Monthly,
             Annually,
+            Advanced,
             Custom
         }
 
         /// <summary>Uniquely identifies the class type for serialization.</summary>
         [JsonProperty(Order = -5)]
         string ID { get; }
+
+        string TypeID { get; set; }
 
         /// <summary>The name of this task.</summary>
         [JsonProperty(Order = -4)]
@@ -53,6 +56,18 @@ namespace DeluxeJournal.Task
 
         /// <summary>The renew interval (in days) for a <see cref="Period.Custom"/> renewal period.</summary>
         int RenewCustomInterval { get; set; }
+
+        /// <summary>The seasons in which this task is active/allowed.</summary>
+        SeasonFlags RequiredSeasons { get; set; }
+
+        /// <summary>The weekdays in which this task is active/allowed.</summary>
+        WeekdayFlags RequiredWeekdays { get; set; }
+
+        /// <summary>The weather conditions in which this task is active/allowed.</summary>
+        WeekFlags RequiredWeeks { get; set; }
+
+        /// <summary>The weather conditions in which this task is active/allowed.</summary>
+        WeatherFlags RequiredWeather { get; set; }
 
         /// <summary>Current count. Used for tracking progress.</summary>
         int Count { get; set; }

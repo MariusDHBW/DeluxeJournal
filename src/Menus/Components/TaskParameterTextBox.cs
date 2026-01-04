@@ -28,9 +28,21 @@ namespace DeluxeJournal.Menus.Components
             {
                 EnableFuzzySearch = true,
                 IgnoreItems = !parameter.Attribute.Tag.Equals(TaskParameterTag.ItemList),
+                IgnoreForageItems = !parameter.Attribute.Tag.Equals(TaskParameterTag.ForageItemList),
                 IgnoreNpcs = !parameter.Attribute.Tag.Equals(TaskParameterTag.NpcName),
                 IgnoreBuildings = !parameter.Attribute.Tag.Equals(TaskParameterTag.Building),
                 IgnoreFarmAnimals = !parameter.Attribute.Tag.Equals(TaskParameterTag.FarmAnimalList),
+                IgnorePets = !parameter.Attribute.Tag.Equals(TaskParameterTag.PetName),
+                IgnoreLocations = !parameter.Attribute.Tag.Equals(TaskParameterTag.Location),
+                IgnoreFarmLocations = !parameter.Attribute.Tag.Equals(TaskParameterTag.FarmLocation),
+                IgnoreForageLocations = !parameter.Attribute.Tag.Equals(TaskParameterTag.ForageLocation),
+                IgnoreAnimalLocations = !parameter.Attribute.Tag.Equals(TaskParameterTag.AnimalLocation),
+                IgnoreMachineLocations = !parameter.Attribute.Tag.Equals(TaskParameterTag.MachineLocation),
+                IgnoreMachines = !parameter.Attribute.Tag.Equals(TaskParameterTag.Machine),
+                IgnoreSpecialOrders = !parameter.Attribute.Tag.Equals(TaskParameterTag.SpecialOrderType),
+                IgnorePassiveFestivals = !parameter.Attribute.Tag.Equals(TaskParameterTag.PassiveFestivalId),
+                IgnoreActiveFestivals = !parameter.Attribute.Tag.Equals(TaskParameterTag.ActiveFestivalId),
+                IgnoreShops = !parameter.Attribute.Tag.Equals(TaskParameterTag.Shop),
                 SetItemCategoryObject = parameter.Attribute.Constraints.HasFlag(Constraint.SObject),
                 SetItemCategoryBigCraftable = parameter.Attribute.HasAnyConstraint(Constraint.SObject ^ Constraint.Craftable),
                 SetItemCategoryCraftable = parameter.Attribute.Constraints.HasFlag(Constraint.Craftable),
@@ -63,10 +75,23 @@ namespace DeluxeJournal.Menus.Components
             Text = Parameter.Attribute.Tag switch
             {
                 TaskParameterTag.ItemList => Parser.ProxyItemDisplayName,
+                TaskParameterTag.ForageItemList => Parser.ProxyItemDisplayName,
                 TaskParameterTag.NpcName => Parser.NpcDisplayName,
                 TaskParameterTag.Building => Parser.BuildingDisplayName,
                 TaskParameterTag.FarmAnimalList => Parser.FarmAnimalDisplayName,
+                TaskParameterTag.PetName => Parser.PetDisplayName,
                 TaskParameterTag.Count => Parser.Count.ToString(),
+                TaskParameterTag.Location => Parser.LocationDisplayName,
+                TaskParameterTag.FarmLocation => Parser.FarmLocationDisplayName,
+                TaskParameterTag.ForageLocation => Parser.ForageLocationDisplayName,
+                TaskParameterTag.AnimalLocation => Parser.AnimalLocationDisplayName,
+                TaskParameterTag.MachineLocation => Parser.MachineLocationDisplayName,
+                TaskParameterTag.Shop => Parser.ShopDisplayName,
+                TaskParameterTag.Machine => Parser.MachineDisplayName,
+                TaskParameterTag.SpecialOrderType => Parser.SpecialOrderType,
+                TaskParameterTag.PassiveFestivalId => Parser.PassiveFestivalDisplayName,
+                TaskParameterTag.ActiveFestivalId => Parser.ActiveFestivalDisplayName,
+
                 _ => string.Empty
             };
 
@@ -137,8 +162,8 @@ namespace DeluxeJournal.Menus.Components
                 ClearParameterValue();
             }
             else if (!Parser.Parse(Text, TaskParser.ParseMode.UpdateFactory))
-            {
-                Parameter.Value = null;
+                {
+                    Parameter.Value = null;
             }
         }
 

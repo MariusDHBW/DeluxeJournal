@@ -25,14 +25,21 @@
             /// <summary>Specifies a building type parameter.</summary>
             public const string Building = "building";
 
+            /// <summary>Specifies a location parameter.</summary>
+            public const string Location = "location";
+
             /// <summary>Specifies a farm animal type parameter.</summary>
             public const string FarmAnimal = "animal";
+            public const string Pet = "pet";
 
             /// <summary>Specifies a counting type parameter.</summary>
             public const string Count = "count";
 
             /// <summary>Specifies a quality type parameter.</summary>
             public const string Quality = "quality";
+            public const string Machine = "machine";
+            public const string SpecialOrderType = "special_order_type";
+            public const string FestivalId = "festival_id";
         }
 
         /// <summary>Parser tags for populating parameter values.</summary>
@@ -46,6 +53,7 @@
             /// type <see cref="string"/>.
             /// </summary>
             ItemList,
+            ForageItemList,
 
             /// <summary>
             /// A farm animal name list of type <see cref="IList{T}"/> with generic type
@@ -55,12 +63,24 @@
 
             /// <summary>An NPC name of type <see cref="string"/>.</summary>
             NpcName,
+            PetName,
 
             /// <summary>A building name of type <see cref="string"/>.</summary>
             Building,
 
             /// <summary>An item count of type <see cref="int"/>.</summary>
             Count,
+
+            Location,
+            FarmLocation,
+            ForageLocation,
+            AnimalLocation,
+            MachineLocation,
+            Shop,
+            Machine,
+            SpecialOrderType,
+            PassiveFestivalId,
+            ActiveFestivalId,
 
             /// <summary>An item quality of type <see cref="int"/>.</summary>
             Quality

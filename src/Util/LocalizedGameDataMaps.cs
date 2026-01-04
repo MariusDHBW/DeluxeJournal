@@ -6,6 +6,7 @@ using StardewValley.GameData.Characters;
 using StardewValley.GameData.FarmAnimals;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Weapons;
+using StardewValley.GameData.Shops;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.TokenizableStrings;
 using DeluxeJournal.Task;
@@ -26,6 +27,21 @@ namespace DeluxeJournal.Util
 
         /// <inheritdoc cref="LocalizedFarmAnimalMap"/>
         public LocalizedGameDataMap LocalizedFarmAnimals { get; } = new LocalizedFarmAnimalMap(translation, settings, monitor);
+
+        public LocalizedGameDataMap LocalizedPets { get; } = new LocalizedPetMap(translation, settings, monitor);
+
+        // --- Maps für Locations und Shops ---
+        public LocalizedGameDataMap LocalizedLocations { get; } = new LocalizedLocationMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedFarmLocations { get; } = new LocalizedFarmLocationMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedForageLocations { get; } = new LocalizedForageLocationMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedAnimalLocations { get; } = new LocalizedAnimalLocationMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedMachineLocations { get; } = new LocalizedMachineLocationMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedForageItems { get; } = new LocalizedForageItemMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedShops { get; } = new LocalizedShopMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedMachines { get; } = new LocalizedMachineMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedSpecialOrder { get; } = new LocalizedSpecialOrderTypeMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedPassiveFestivals { get; } = new LocalizedPassiveFestivalMap(translation, settings, monitor);
+        public LocalizedGameDataMap LocalizedActiveFestivals { get; } = new LocalizedActiveFestivalMap(translation, settings, monitor);
 
         public LocalizedGameDataMaps(ITranslationHelper translation, IMonitor? monitor = null)
             : this(translation, new(), monitor)
@@ -294,6 +310,259 @@ namespace DeluxeJournal.Util
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>Maps localized pet names to their internal names (which is usually the same).</summary>
+        private class LocalizedPetMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedGameDataMap("alias.pets.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                Utility.ForEachCharacter(npc =>
+                {
+                    if (npc is StardewValley.Characters.Pet pet)
+                    {
+                        Add(pet.displayName, pet.displayName);
+                    }
+                    return true;
+                });
+            }
+        }
+
+        private class LocalizedShopMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedGameDataMap("alias.shops.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                try
+                {
+                    var allShops = Game1.content.Load<Dictionary<string, ShopData>>("Data/Shops");
+                    foreach (var kvp in allShops)
+                    {
+                        string shopId = kvp.Key;
+                        var data = kvp.Value;
+
+                        Add(shopId, shopId);
+
+                        if (data.Owners != null)
+                        {
+                            foreach (var owner in data.Owners)
+                            {
+                                Add(owner.Name, shopId);
+                                if (Game1.characterData.TryGetValue(owner.Name, out var npcData))
+                                {
+                                    Add(TokenParser.ParseText(npcData.DisplayName), shopId);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>Maps localized machine names to their qualified item IDs.</summary>
+        private class LocalizedMachineMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedGameDataMap("alias.machines.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                var machineData = DataLoader.Machines(Game1.content);
+
+                foreach (string itemId in machineData.Keys)
+                {
+                    var data = ItemRegistry.GetData(itemId);
+                    if (data != null)
+                    {
+                        Add(data.DisplayName, itemId);
+                        Add(data.DisplayName.ToLower(), itemId);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>Maps localized special order board names to their internal types (e.g. "Qi", "").</summary>
+        private class LocalizedSpecialOrderTypeMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedGameDataMap("alias.special_orders.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                Add(Game1.content.LoadString("Strings\\StringsFromCSFiles:Object.cs.12852"), ""); 
+                Add("Town", ""); 
+                Add("Stadt", "");
+                Add("Mayor", "");
+
+                var data = DataLoader.SpecialOrders(Game1.content);
+                foreach (var order in data.Values)
+                {
+                    if (!string.IsNullOrEmpty(order.OrderType))
+                    {
+                        Add(order.OrderType, order.OrderType);
+                    }
+                }
+            }
+        }
+
+        /// <summary>Maps localized passive festival names to their IDs.</summary>
+        private class LocalizedPassiveFestivalMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedGameDataMap("alias.passive_festivals.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                var data = DataLoader.PassiveFestivals(Game1.content);
+                foreach (var kvp in data)
+                {
+                    string id = kvp.Key;
+                    var festivalData = kvp.Value;
+                    
+                    if (festivalData != null)
+                    {
+                        string displayName = TokenParser.ParseText(festivalData.DisplayName);
+                        if (string.IsNullOrWhiteSpace(displayName) || displayName.StartsWith("@"))
+                        {
+                            displayName = System.Text.RegularExpressions.Regex.Replace(id, "([a-z])([A-Z])", "$1 $2");
+                        }
+                        
+                        Add(displayName, id);
+                    }
+                }
+            }
+        }
+
+        /// <summary>Maps localized active festival names to their internal names.</summary>
+        private class LocalizedActiveFestivalMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedGameDataMap("alias.active_festivals.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                var data = DataLoader.Festivals_FestivalDates(Game1.content);
+                foreach (var festivalName in data.Values)
+                {
+                    Add(festivalName, festivalName);
+                }
+            }
+        }
+
+        /// <summary>Maps names of FORAGE items (Greens, Flowers, Fruits, Truffles...).</summary>
+        private class LocalizedForageItemMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedGameDataMap("alias.forage_items.", translation, settings, monitor)
+        {
+            private static readonly HashSet<int> AllowedCategories =
+            [
+                SObject.GreensCategory,
+                SObject.flowersCategory,
+                SObject.FruitsCategory,
+                SObject.VegetableCategory 
+            ];
+
+            private static readonly HashSet<string> WhitelistIds =
+            [
+                "430", "78", "88", "90", "829", "851", "SpecificBait" 
+            ];
+
+            protected override void PopulateDataMap()
+            {
+                AddPlural(Game1.content.LoadString("Strings\\StringsFromCSFiles:CraftingRecipe.cs.568"), SObject.GreensCategory.ToString());
+                AddPlural(Game1.content.LoadString("Strings\\StringsFromCSFiles:CraftingRecipe.cs.570"), SObject.VegetableCategory.ToString());
+                AddPlural(Game1.content.LoadString("Strings\\StringsFromCSFiles:CraftingRecipe.cs.571"), SObject.FruitsCategory.ToString());
+
+                foreach (var pair in Game1.objectData)
+                {
+                    if (pair.Value != null)
+                    {
+                        bool isMatch = AllowedCategories.Contains(pair.Value.Category) || WhitelistIds.Contains(pair.Key);
+                        if (isMatch)
+                        {
+                            if (TokenParser.ParseText(pair.Value.DisplayName) is string parsedName)
+                            {
+                                AddPlural(parsedName, ItemRegistry.type_object + pair.Key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private abstract class LocalizedLocationMapBase(string alias, ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor) 
+            : LocalizedGameDataMap(alias, translation, settings, monitor)
+        {
+            protected void AddBuildings(Predicate<GameLocation> filter)
+            {
+                Farm farm = Game1.getFarm();
+                if (farm == null) return;
+
+                foreach (var building in farm.buildings)
+                {
+                    if (building.indoors.Value != null && filter(building.indoors.Value))
+                    {
+                        string buildingType = building.buildingType.Value;
+                        string displayName = Game1.buildingData.TryGetValue(buildingType, out var data) 
+                            ? TokenParser.ParseText(data.Name) 
+                            : buildingType;
+
+                        Add($"{displayName} ({building.tileX.Value} {building.tileY.Value})", building.id.Value.ToString());
+                    }
+                }
+            }
+        }
+
+        private class LocalizedLocationMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedLocationMapBase("alias.location.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                foreach (var loc in Game1.locations)
+                    if (loc.Name != null) Add(loc.DisplayName ?? loc.Name, loc.Name);
+            }
+        }
+
+        private class LocalizedFarmLocationMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedLocationMapBase("alias.farm_location.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                foreach (var loc in Game1.locations)
+                    if (loc.IsFarm || loc.IsGreenhouse) Add(loc.DisplayName, loc.Name);
+            }
+        }
+
+        private class LocalizedForageLocationMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedLocationMapBase("alias.forage_location.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                var locationData = DataLoader.Locations(Game1.content);
+                foreach (var loc in Game1.locations)
+                {
+                    if ((locationData.TryGetValue(loc.Name, out var data) && data.Forage?.Count > 0) || loc.Name == "FarmCave")
+                        Add(loc.DisplayName, loc.Name);
+                }
+            }
+        }
+
+        private class LocalizedAnimalLocationMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedLocationMapBase("alias.animal_location.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                AddBuildings(indoors => indoors is StardewValley.AnimalHouse);
+
+                foreach (var loc in Game1.locations)
+                    if (loc is StardewValley.AnimalHouse && !loc.IsFarm && !loc.IsGreenhouse)
+                        Add(loc.DisplayName, loc.Name);
+            }
+        }
+
+        private class LocalizedMachineLocationMap(ITranslationHelper translation, TaskParserSettings settings, IMonitor? monitor)
+            : LocalizedLocationMapBase("alias.machine_location.", translation, settings, monitor)
+        {
+            protected override void PopulateDataMap()
+            {
+                AddBuildings(indoors => true);
+
+                foreach (var loc in Game1.locations)
+                    if (loc.Name != null) Add(loc.DisplayName ?? loc.Name, loc.Name);
             }
         }
     }
